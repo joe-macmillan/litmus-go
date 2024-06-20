@@ -25,6 +25,7 @@ import (
 	diskFill "github.com/litmuschaos/litmus-go/experiments/generic/disk-fill/experiment"
 	dockerServiceKill "github.com/litmuschaos/litmus-go/experiments/generic/docker-service-kill/experiment"
 	kubeletServiceKill "github.com/litmuschaos/litmus-go/experiments/generic/kubelet-service-kill/experiment"
+	kubeletSvcKillRancher "github.com/litmuschaos/litmus-go/experiments/generic/kubelet-svc-kill-rancher/experiment"
 	nodeCPUHog "github.com/litmuschaos/litmus-go/experiments/generic/node-cpu-hog/experiment"
 	nodeDrain "github.com/litmuschaos/litmus-go/experiments/generic/node-drain/experiment"
 	nodeIOStress "github.com/litmuschaos/litmus-go/experiments/generic/node-io-stress/experiment"
@@ -99,6 +100,8 @@ func main() {
 		kafkaBrokerPodFailure.KafkaBrokerPodFailure(clients)
 	case "kubelet-service-kill":
 		kubeletServiceKill.KubeletServiceKill(clients)
+	case "kubelet-svc-kill-rancher":
+		kubeletSvcKillRancher.KubeletSvcKillRancher(clients)
 	case "docker-service-kill":
 		dockerServiceKill.DockerServiceKill(clients)
 	case "node-cpu-hog":

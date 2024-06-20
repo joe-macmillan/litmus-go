@@ -11,13 +11,13 @@ WORKDIR /litmus-go
 RUN export GOOS=${TARGETOS} && \
     export GOARCH=${TARGETARCH}
 
-RUN CGO_ENABLED=0 go build -o /output/experiments ./bin/experiment
-RUN CGO_ENABLED=0 go build -o /output/helpers ./bin/helper
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /output/experiments ./bin/experiment
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /output/helpers ./bin/helper
 
 FROM alpine:3.15.0 AS dep
 
 # Install generally useful things
-RUN apk --update add \
+RUN apk --update --no-cache add \
         sudo \
         iproute2 \
         iptables

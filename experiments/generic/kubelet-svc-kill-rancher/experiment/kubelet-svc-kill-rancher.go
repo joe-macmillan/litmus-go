@@ -19,7 +19,7 @@ import (
 )
 
 // kubeletSvcKillRancher inject the kubelet-svc-kill-rancher chaos
-func kubeletSvcKillRancher(clients clients.ClientSets) {
+func KubeletSvcKillRancher(clients clients.ClientSets) {
 
 	experimentsDetails := experimentTypes.ExperimentDetails{}
 	resultDetails := types.ResultDetails{}
@@ -124,7 +124,7 @@ func kubeletSvcKillRancher(clients clients.ClientSets) {
 
 	chaosDetails.Phase = types.ChaosInjectPhase
 	if err := litmusLIB.PrepareKubeletKillRancher(&experimentsDetails, clients, &resultDetails, &eventsDetails, &chaosDetails); err != nil {
-		log.Errorf("[Error]: Node restart failed, err: %v", err)
+		log.Errorf("Chaos injection failed, err: %v", err)
 		result.RecordAfterFailure(&chaosDetails, &resultDetails, err, clients, &eventsDetails)
 		return
 	}
@@ -137,7 +137,7 @@ func kubeletSvcKillRancher(clients clients.ClientSets) {
 	if chaosDetails.DefaultHealthCheck {
 		log.Info("[Status]: Verify that the AUT (Application Under Test) is running (post-chaos)")
 		if err := status.AUTStatusCheck(clients, &chaosDetails); err != nil {
-			log.Infof("Application status check failed, err: %v", err)
+			log.Errorf("Application status check failed, err: %v", err)
 			result.RecordAfterFailure(&chaosDetails, &resultDetails, err, clients, &eventsDetails)
 			return
 		}
@@ -190,13 +190,17 @@ func kubeletSvcKillRancher(clients clients.ClientSets) {
 		result.RecordAfterFailure(&chaosDetails, &resultDetails, err, clients, &eventsDetails)
 		return
 	}
+
+	// generating the event in chaosresult to marked the verdict as pass/fail
+	msg = "experiment: " + experimentsDetails.ExperimentName + ", Result: " + string(resultDetails.Verdict)
+	reason, eventType := types.GetChaosResultVerdictEvent(resultDetails.Verdict)
+	types.SetResultEventAttributes(&eventsDetails, reason, msg, eventType, &resultDetails)
+	events.GenerateEvents(&eventsDetails, clients, &chaosDetails, "ChaosResult")
+
 	if experimentsDetails.EngineName != "" {
 		msg := experimentsDetails.ExperimentName + " experiment has been " + string(resultDetails.Verdict) + "ed"
 		types.SetEngineEventAttributes(&eventsDetails, types.Summary, msg, "Normal", &chaosDetails)
 		events.GenerateEvents(&eventsDetails, clients, &chaosDetails, "ChaosEngine")
 	}
-
-	msg = experimentsDetails.ExperimentName + " experiment has been " + string(resultDetails.Verdict) + "ed"
-	types.SetResultEventAttributes(&eventsDetails, types.Summary, msg, "Normal", &resultDetails)
-	events.GenerateEvents(&eventsDetails, clients, &chaosDetails, "ChaosResult")
+	
 }
